@@ -2,8 +2,10 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -11,38 +13,84 @@ var words [5757]string
 var letterScores = make(map[string]int)
 var organizedWords = make(map[string]*[5][]string)
 var wordScores = make(map[string]int)
- 
+var currGuess string
+var answer string
+
 func main() {
 
-    processWordFile()
-    highScore := 0
-    currGuess := ""
-    
-    // find the "best" starting word
-    for _, word := range words {
-        score := calcScore(word)
-        if score > highScore {
-            highScore = score
-            currGuess = word
-        }
-    }
+    flag.StringVar(&currGuess, "seed", "thing", "Specify starting workd. Default is 'thing'")
+    flag.StringVar(&answer, "answer", "", "Specify answer. Default mode runs without answer.")
 
+    flag.Parse()
+
+    processWordFile()
     initializeOrganizedWords()
     organize()
 
     currWordBank := words[:];
+    guessCount := 1
 
-    for {
-        fmt.Println("My guess is: " + currGuess);
-        res := askResult()
-        if res == "YYYYY" {
-            fmt.Println("YAY I WIN BYE")
-            break
+    if answer != "" {
+        for {
+            fmt.Println("My guess is: " + currGuess)
+            res := checkGuess(currGuess, answer)
+            if res == "YYYYY" {
+                fmt.Println("Got the right answer in " + strconv.Itoa(guessCount) + " guesses")
+                break
+            }
+            currWordBank = createWordBank(currWordBank, currGuess, res)
+            currGuess = pickBestWord(currWordBank)
+            guessCount++
         }
-        currWordBank = createSetOpt(currWordBank, currGuess, res)
-        currGuess = pickBestWord(currWordBank)
+    } else {
+        for {
+            fmt.Println("My guess is: " + currGuess);
+            res := askResult()
+            if res == "YYYYY" {
+                fmt.Println("I won in " + strconv.Itoa(guessCount) + " guesses")
+                break
+            }
+            currWordBank = createWordBank(currWordBank, currGuess, res)
+            currGuess = pickBestWord(currWordBank)
+            guessCount++
+        }
+    }
+}
+
+func checkGuess(guess string, ans string) string {
+    res := ""
+    for i, l := range guess {
+        letter := string(l)
+        answerL := string(ans[i])
+        if letter == answerL {
+            res += "Y"
+        } else if !strings.Contains(ans, letter){
+            res += "N"
+        } else {
+            res += "M"
+        }
+    }
+    guessMap := make(map[string][]int)
+    for i, c := range guess {
+        _, contains := guessMap[string(c)]
+        if !contains && string(res[i]) == "Y" {
+            guessMap[string(c)] = []int{i}
+        } else if string(res[i]) == "Y"  {
+            guessMap[string(c)] = append(guessMap[string(c)], i)
+        }
     }
 
+    newRes := ""
+    for i, c := range res {
+        if string(res[i]) == "M" {
+            if strings.Count(ans, string(guess[i])) == len(guessMap[string(guess[i])]) {
+                newRes += "N"
+                continue
+            }
+        }
+        newRes += string(c)
+    }
+    return newRes
 }
 
 func processWordFile() {
@@ -104,7 +152,7 @@ func organize(){
     }
 }
 
-func createSetOpt(wordBank []string, prevWord string, clue string) []string {
+func createWordBank(wordBank []string, prevWord string, clue string) []string {
     for i, l := range prevWord {
         letter := string(l)
         rule := string(clue[i])
