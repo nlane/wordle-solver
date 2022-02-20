@@ -11,21 +11,20 @@ import (
 
 var words [5757]string
 var letterScores = make(map[string]int)
-var organizedWords = make(map[string]*[5][]string)
 var wordScores = make(map[string]int)
+var wordMap = make(map[string]*[5][]string)
 var currGuess string
 var answer string
 
 func main() {
 
-    flag.StringVar(&currGuess, "seed", "thing", "Specify starting workd. Default is 'thing'")
-    flag.StringVar(&answer, "answer", "", "Specify answer. Default mode runs without answer.")
+    flag.StringVar(&currGuess, "s", "thing", "Specify starting word. Default is 'thing'.")
+    flag.StringVar(&answer, "a", "", "Specify answer. Default mode runs without answer.")
 
     flag.Parse()
 
     processWordFile()
-    initializeOrganizedWords()
-    organize()
+    createWordMap()
 
     currWordBank := words[:];
     guessCount := 1
@@ -38,7 +37,7 @@ func main() {
                 fmt.Println("Got the right answer in " + strconv.Itoa(guessCount) + " guesses")
                 break
             }
-            currWordBank = createWordBank(currWordBank, currGuess, res)
+            currWordBank = filterWords(currWordBank, currGuess, res)
             currGuess = pickBestWord(currWordBank)
             guessCount++
         }
@@ -50,7 +49,7 @@ func main() {
                 fmt.Println("I won in " + strconv.Itoa(guessCount) + " guesses")
                 break
             }
-            currWordBank = createWordBank(currWordBank, currGuess, res)
+            currWordBank = filterWords(currWordBank, currGuess, res)
             currGuess = pickBestWord(currWordBank)
             guessCount++
         }
@@ -135,32 +134,33 @@ func calcScore(word string) (int) {
     return score
 }
 
-func initializeOrganizedWords() {
+func initializeWordMap() {
     for c := range letterScores {
         letter := string(c)
-        organizedWords[letter] = &[5][]string{}
+        wordMap[letter] = &[5][]string{}
     }
 }
 
-func organize(){
+func createWordMap(){
+    initializeWordMap()
     for _, word := range words {
         wordScores[word] = calcScore(word)
         for idx, c := range word {
             letter := string(c)
-            organizedWords[letter][idx] = append(organizedWords[letter][idx], word)
+            wordMap[letter][idx] = append(wordMap[letter][idx], word)
         }
     }
 }
 
-func createWordBank(wordBank []string, prevWord string, clue string) []string {
+func filterWords(wordBank []string, prevWord string, clue string) []string {
     for i, l := range prevWord {
         letter := string(l)
         rule := string(clue[i])
         if rule == "Y" {
-            wordBank = intersection(wordBank, organizedWords[letter][i])
+            wordBank = intersection(wordBank, wordMap[letter][i])
         } 
         if rule == "M" {
-            wordBank = filterOut(wordBank, organizedWords[letter][i])
+            wordBank = filterOut(wordBank, wordMap[letter][i])
         }
         if rule == "N" {
             for j, c := range prevWord {
@@ -168,7 +168,7 @@ func createWordBank(wordBank []string, prevWord string, clue string) []string {
                 if prevL == letter && string(clue[j]) == "Y" {
                     continue
                 }
-                wordBank = filterOut(wordBank, organizedWords[letter][j])
+                wordBank = filterOut(wordBank, wordMap[letter][j])
             }
         }
     }
