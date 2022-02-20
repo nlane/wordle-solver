@@ -16,25 +16,32 @@ func main() {
 
     processWordFile()
     highScore := 0
-    bestWord := ""
+    currGuess := ""
     
     // find the "best" starting word
     for _, word := range words {
         score := calcScore(word)
         if score > highScore {
             highScore = score
-            bestWord = word
+            currGuess = word
         }
     }
-
-    fmt.Println(bestWord)
-    fmt.Println(highScore)
 
     initializeOrganizedWords()
     organize()
 
-    opts := createSetOpt(words[:], "treat", "YYYYN")
-    fmt.Println(opts)
+    currWordBank := words[:];
+
+    for {
+        fmt.Println("My guess is: " + currGuess);
+        res := askResult()
+        if res == "YYYYY" {
+            fmt.Println("YAY I WIN BYE")
+            break
+        }
+        currWordBank = createSetOpt(currWordBank, currGuess, res)
+        currGuess = pickBestWord(currWordBank)
+    }
 
 }
 
@@ -131,3 +138,18 @@ func pickBestWord(wordBank []string) string {
     }
     return bestWord
 }
+
+func askResult() string {
+    var s string
+    r := bufio.NewReader(os.Stdin)
+    for {
+        fmt.Fprint(os.Stderr, "How was my guess? ")
+        s, _ = r.ReadString('\n')
+        if s != "" {
+            break
+        }
+    }
+    return strings.TrimSpace(s)
+}
+
+
