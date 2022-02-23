@@ -19,7 +19,7 @@ In interactive mode, you must input the results for each of the program's guesse
 The program will ouput its guess and ask for feedback such as:
 
 ```
-My guess is: thing
+My guess is: cares
 How was my guess?
 ```
 
@@ -32,7 +32,7 @@ You input a 5 letter string using the characters:
 Going back to the previous example, if your answer is "tints" then you would input:
 
 ```
-My guess is: thing
+My guess is: cares
 How was my guess? YNMMN
 ```
 
@@ -45,4 +45,4 @@ To run in interactive mode just run the program without any flags: `go run .`
 All flags are optional. There are 2 flags:
 
 - `-a` - specifies the answer to use when running in "Solver" mode
-- `-s` - specifies the word to start with (defaults to "thing")
+- `-s` - specifies the word to start with (defaults to "cares")
