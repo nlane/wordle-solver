@@ -126,10 +126,10 @@ func calcScore(word string) (int) {
     for _, c := range word {
         letter := string(c)
         score += letterScores[letter]
-        n1 := strings.Count(word, letter)
-        if n1 == 1 {
-            score += 750
-        }
+        // n1 := strings.Count(word, letter)
+        // if n1 == 1 {
+        //     score += 750
+        // }
     }
     return score
 }
@@ -160,7 +160,15 @@ func filterWords(wordBank []string, prevWord string, clue string) []string {
             wordBank = intersection(wordBank, wordMap[letter][i])
         } 
         if rule == "M" {
-            wordBank = filterOut(wordBank, wordMap[letter][i])
+            // add all the sets that include this letter except the one at this spot
+            allWords := []string{}
+            for j, _ := range wordMap[letter] {
+                if j == i {
+                    continue
+                }
+                allWords = append(allWords, wordMap[letter][j]...)
+            }
+            wordBank = intersection(wordBank, allWords)
         }
         if rule == "N" {
             for j, c := range prevWord {
