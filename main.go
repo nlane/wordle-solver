@@ -29,7 +29,6 @@ func main() {
     currWordBank := words[:];
     guessCount := 1
 
-
     if answer != "" {
         for {
             currGuess = pickBestWord(currWordBank)
