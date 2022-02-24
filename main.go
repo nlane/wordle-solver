@@ -31,7 +31,6 @@ func main() {
 
     if answer != "" {
         for {
-            currGuess = pickBestWord(currWordBank)
             fmt.Println("My guess is: " + currGuess)
             res := checkGuess(currGuess, answer)
             if res == "YYYYY" {
